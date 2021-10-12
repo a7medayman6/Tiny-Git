@@ -33,7 +33,7 @@ def generate_object_hash(data, type):
 
     return sha1
 
-def write_object(obj):
+def writeObject(obj):
     """
         Description:
             Writes the object hash compressed to .git/objects as hex string.
@@ -51,13 +51,13 @@ def write_object(obj):
     obj_path = os.path.join('.git', 'objects', obj[:2], obj[2:])
     if not os.path.exists(obj_path):
         os.makedirs(os.path.dirname(obj_path), exist_ok=True)
-        write_file(obj_path, zlib.compress(obj))
+        writeFile(obj_path, zlib.compress(obj))
     else:
         raise Exception('The object already exists at %' % obj_path)
 
     return obj
 
-def find_object(obj_hash_prefix):
+def findObject(obj_hash_prefix):
     """
         Description: 
             Finds the path of an object using it's first 3 or more chars of it's sha1 hash, if it exists.
@@ -89,7 +89,7 @@ def find_object(obj_hash_prefix):
     # return the first (and only) object in the objects list.
     return os.path.join(obj_dir, objects_list[0])
 
-def read_object(obj_hash_prefix):
+def getObject(obj_hash_prefix):
     """
         Description: 
             Reads an object from it's sha1_prefix if it exist.
@@ -101,10 +101,10 @@ def read_object(obj_hash_prefix):
     """
 
     # get the object file path
-    obj_path = find_object(obj_hash_prefix)
+    obj_path = findObject(obj_hash_prefix)
     
     # read the data from the obj_path 
-    compressed_data = read_file(obj_path)
+    compressed_data = readFile(obj_path)
 
     # decompress the data
     decompressed_data = zlib.decompress(compressed_data) 
@@ -128,7 +128,7 @@ def read_object(obj_hash_prefix):
     return (type, data)
 
 
-def read_tree(obj_hash_prefix=None, data=None):
+def getTree(obj_hash_prefix=None, data=None):
     """
         Description: 
             Reads a git tree and splits the objects inside it, 
@@ -142,7 +142,7 @@ def read_tree(obj_hash_prefix=None, data=None):
     if obj_hash_prefix is None and data is None:
         raise TypeError('must specify "obj_hash_prefix" or "data"')
     elif obj_hash_prefix is not None:
-        type, data = read_object(obj_hash_prefix)
+        type, data = getObject(obj_hash_prefix)
         assert type == 'tree', 'specified object type is not a tree'
         
     i = 0
@@ -171,7 +171,7 @@ def cat_file(mode, obj_hash_prefix):
             None.
     """
     # get the object data and type
-    type, data = read_object(obj_hash_prefix)
+    type, data = getObject(obj_hash_prefix)
 
     if mode in ['commit', 'tree', 'blob']:
         # if the mode is a type, but not equivilant to the object type -> raise an exception
@@ -193,7 +193,7 @@ def cat_file(mode, obj_hash_prefix):
         if type in ['commit', 'blob']:
             sys.stdout.buffer.write(data)
         elif type == 'tree':
-            for mode, path, sha1 in read_tree(data=data):
+            for mode, path, sha1 in getTree(data=data):
                 inner_object_type = 'tree' if stat.S_ISDIR(mode) else 'blob'
                 print('{:06o} {} {}\t{}'.format(mode, inner_object_type, sha1, path))
         else:

@@ -2,6 +2,8 @@ import os
 
 from helpers import *
 
+from gitCache import getWorkdirState
+
 
 def init(path = '.'):
     """
@@ -11,7 +13,7 @@ def init(path = '.'):
         Parameters:
             path (string): the path to create the git repository at. path='.' by default.
         Return:
-            (boolean): true if initialized successfully, false otherwise. 
+            (boolean): true if initialized successfully, otherwise raise an exception. 
     """
 
     
@@ -26,9 +28,41 @@ def init(path = '.'):
     os.mkdir(os.path.join(path, '.git', 'refs/HEAD'))
 
     # Write to the HEAD file the branch pointer in refs. 
-    write_file(os.path.join(path, '.git', 'HEAD'), b'ref: refs/heads/master')
+    writeFile(os.path.join(path, '.git', 'HEAD'), b'ref: refs/heads/master')
     
     print('Initialized an empty git repository at ', path)
 
     return True
+
+def status(path = '.'):
+    """
+        Description:
+            Displays the status of the working directory copy (new, modified, deleted).
+        Parameters:
+            [path] (string): the path of the git repository, path = '.' by default. 
+        Return:
+            None.
+    """
+    new, modified, deleted = getWorkdirState(path)
+    
+    # print the new list
+    if new:
+        print ("New files ..")
+        for file in new:
+            print('\t', file)
+        print('\t', "__________________")
+
+    # print the modified list
+    if modified:
+        print ("Modified files ..")
+        for file in modified:
+            print('\t', file)
+        print('\t', "__________________")
+
+    # print the deleted list
+    if deleted:
+        print ("Deleted files ..")
+        for file in deleted:
+            print('\t', file)
+        print('\t', "__________________")
 
