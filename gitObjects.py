@@ -10,37 +10,18 @@ import stat
 
 from helpers import *
 
+from gitCache import getCache
 
-def generate_object_hash(data, type):
-    """
-        Description:
-            Generates hash of the object including the data and it's header.
-        Parameters:
-            data (str): the object data
-            type (str): the object type which is one of three types (blob, commit, tree) 
-        Return:
-            sha1 (hex string): hashed object of the header and data.
-    """
 
-    # the obj header contains the type of the object, and it's size
-    obj_header = '{} {}'.format(type, len(data)).encode()
-
-    # the object consists of the header then Null byte then it's data
-    obj = obj_header + b'\x00' + data
-
-    # hash the object using sha1
-    sha1 = hashlib.sha1(obj).hexdigest()
-
-    return sha1
 
 def writeObject(obj):
     """
         Description:
             Writes the object hash compressed to .git/objects as hex string.
         Parameters: 
-            obj (sha1 hex string): object string generated using generate_object_hash function.
+            obj (SHA-1 string)): object string generated using generate_object_hash function.
         Return:
-            obj (sha1 hex string): object string generated using generate_object_hash function.
+            obj (SHA-1 string)): object string generated using generate_object_hash function.
     """
 
     """
@@ -62,7 +43,7 @@ def findObject(obj_hash_prefix):
         Description: 
             Finds the path of an object using it's first 3 or more chars of it's sha1 hash, if it exists.
         Parameters:
-            obj_hash_prefix (str): the first 3 or more chars of object sha1 hash string.
+            obj_hash_prefix (SHA-1 string)): the first 3 or more chars of object sha1 hash string.
         Return:
             (str): the path of the object if it exists, otherwise raise an exception.
     """
@@ -94,7 +75,7 @@ def getObject(obj_hash_prefix):
         Description: 
             Reads an object from it's sha1_prefix if it exist.
         Parameters:
-            obj_hash_prefix (str): the first 3 or more chars of object sha1 hash string.
+            obj_hash_prefix (SHA-1 string)): the first 3 or more chars of object sha1 hash string.
         Return:
             type (str): the object type [blob, commit, tree].
             data (str): the decompressed data.
@@ -134,7 +115,7 @@ def getTree(obj_hash_prefix=None, data=None):
             Reads a git tree and splits the objects inside it, 
             gevin it's hash prefix OR a tree object data.
         Parameters:
-            obj_hash_prefix (str): the first 3 or more chars of object sha1 hash string.
+            obj_hash_prefix (SHA-1 string)): the first 3 or more chars of object sha1 hash string.
             data (str): the decoded data of a tree object file -without the header-.
         Return:
             entries (list): list of all the objects inside the specified tree.
@@ -160,13 +141,34 @@ def getTree(obj_hash_prefix=None, data=None):
 
     return entries
 
+def writeTree():
+    """
+        Description: 
+            Writes a tree from the cache to the db.
+        Parameters:
+            None.
+        Return:
+            obj_hash (SHA-1 string)): generated hash of the tree object.
+    """
+    tree_entries = []
+
+    for entry in getCache():
+        mode_path = '{:o} {}'.format(entry.mode, entry.path).encode()
+
+        # create the entry object
+        object = mode_path + b'\x00' + entry.sha1
+        tree_entries.append(object)
+
+    obj_hash = generate_object_hash(b''.join(tree_entries), 'tree')
+    return obj_hash
+
 def cat_file(mode, obj_hash_prefix):
     """
         Description: 
             Displays an object in a specific format according to the mode argument.
         Parameters:
             mode (str): the mode to display the object.
-            obj_hash_prefix (str): the first 3 or more chars of object sha1 hash string.
+            obj_hash_prefix (SHA-1 string)): the first 3 or more chars of object sha1 hash string.
         Return:
             None.
     """
@@ -200,3 +202,20 @@ def cat_file(mode, obj_hash_prefix):
             raise Exception('Unexpected object type. %' % type)
     else:
         raise Exception('Unexpected mode %' % mode)
+
+def getCommitHash():
+    """
+        Description: 
+            Gets the current commit SHA-1 hash.
+        Parameters:
+            None.            
+        Return:
+            master_hash (SHA-1 string): generated hash of the tree object.
+    """
+    master_file = os.path.join('.git', 'refs', 'heads', 'master')
+
+    try:
+        master_hash = readFile(master_file).decode().strip()
+        return master_hash
+    except FileNotFoundError:
+        return None

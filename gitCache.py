@@ -9,7 +9,7 @@ import hashlib
 
 from helpers import *
 
-from gitObjects import generate_object_hash
+
 
 """
     Description:
@@ -116,7 +116,7 @@ def getWorkdirState(path = '.'):
                 - deleted   => the list of deleted files
     """
     
-    directory_files = []
+    directory_files = set()
     for root, dirs, files in os.walk(path):
         dirs[:] = [d for d in dirs if d != '.git']
 
@@ -130,24 +130,54 @@ def getWorkdirState(path = '.'):
             if path.startswith('./'):
                 path = path[2:]
             
-            directory_files.append(path)
+            directory_files.add(path)
     
     # get the cache entries paths
-    cache_entries_files = set(listFiles(quiet=True))
-    
+    entries_dict = {e.path: e for e in getCache()}
+    cache_entries_files = set(entries_dict)
+
     # get list of the new files, by subtracting directory files list from the files in the cache
     new = directory_files - cache_entries_files
+
     # the modified files set
-    modified = []
+    modified = set()
+    
     # get list of the deleted files, by subtracting the list of files in the cache from the directory files list 
     deleted = cache_entries_files - directory_files
     
     # add the modified files to the list by comparing the sha1 hash of the working dir file and the cache file
     for file in (directory_files & cache_entries_files):
-        if generate_object_hash(readFile(file), 'blob', write=False) != cache_entries_files[file].sha1.hex() :
+        if generate_object_hash(readFile(file), 'blob') != entries_dict[file].sha1.hex() :
             modified.add(file)
     
     states = (new, modified, deleted)
     
     return states
 
+def writeCache(entries):
+    """
+        Description:
+            Packs and Writes entries to the cache.
+        Parameters:
+            entries (list): list of entries in the format of CacheEntry. 
+        Return:
+            None.
+    """ 
+
+    packed_entries = []
+    for entry in entries:
+        head = struct.pack('!LLLLLLLLLL20sH',
+                entry.ctime_s, entry.ctime_n, entry.mtime_s, entry.mtime_n,
+                entry.dev, entry.ino, entry.mode, entry.uid, entry.gid,
+                entry.size, entry.sha1, entry.flags)
+
+        path = entry.path.encode()
+        length = ((62 + len(path) + 8) // 8) * 8
+        packed_entry = head + path + b'\x00' * (length - 62 - len(path))
+        packed_entries.append(packed_entry)
+
+    header = struct.pack('!4sLL', b'DIRC', 2, len(entries))
+    all_data = header + b''.join(packed_entries)
+    digest = hashlib.sha1(all_data).digest()
+
+    writeFile(os.path.join('.git', 'index'), all_data + digest)
