@@ -3,14 +3,14 @@ import sys
 
 import argparse
 
-from git import *
+from gitCommands import *
 
 from gitObjects import cat_file
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    
+
     sub_parsers = parser.add_subparsers(dest='command', metavar='command')
 
     sub_parsers.required = True
@@ -42,10 +42,6 @@ if __name__ == '__main__':
 
     sub_parser.add_argument('-m', '--message', required=True,
             help='text of commit message')
-
-    sub_parser = sub_parsers.add_parser('diff',
-            help='show diff of files changed (between index and working '
-                 'copy)')
 
     sub_parser = sub_parsers.add_parser('hash-object',
             help='hash contents of given path (and optionally write to '

@@ -70,6 +70,9 @@ def status(path = '.'):
         for file in deleted:
             print('\t', file)
         print('\t', "__________________")
+    
+    if not new and not modified and not deleted:
+        print ("No changes in the repository.")
 
 def add(files):
     """
@@ -99,7 +102,8 @@ def add(files):
         entries.append(entry)
     
     writeCache(entries)
-
+    for file in files:
+        print("Added " , file, " to the staging area.")
 def commit(msg, author):
     """
         Description:
