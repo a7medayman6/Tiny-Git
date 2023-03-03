@@ -1,7 +1,6 @@
 name: Release Application
 on:
   push:
-    tags:
       - master
 
 jobs:
