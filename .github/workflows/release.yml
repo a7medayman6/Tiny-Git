@@ -34,6 +34,10 @@ jobs:
           release_name: Release v1.0.0
           draft: false
           prerelease: false
+      - name: Create tar file
+        run: |
+          tar -czvf tinygit.tar.gz ./dist/tinygit
+
 
       - name: Upload Release Asset
         id: upload-release-asset 
