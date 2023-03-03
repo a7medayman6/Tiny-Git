@@ -1,8 +1,8 @@
 name: Release Application
 on:
   push:
-    branches:
-      - master
+    tags:
+      - v*
 
 jobs:
   release:
@@ -30,10 +30,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.REPOSITORY_ACCESS_TOKEN }}
         with:
-          tag_name: v1.0.0
-          release_name: Release v1.0.0
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
+
       - name: Create tar file
         run: |
           tar -czvf tinygit.tar.gz ./dist/tinygit
