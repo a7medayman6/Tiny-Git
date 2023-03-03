@@ -1,0 +1,46 @@
+name: Release Application
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+
+      - name: Build application
+        run: |
+          pyinstaller --onefile tinygit.py
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Create tar file
+        run: |
+          tar -czvf tinygit.tar.gz -C dist .
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: tinygit
+          path: tinygit.tar.gz
