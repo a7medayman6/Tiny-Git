@@ -35,12 +35,8 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Create tar file
-        run: |
-          tar -czvf tinygit.tar.gz dist/tinygit 
-
       - name: Upload release artifact
         uses: actions/upload-artifact@v2
         with:
           name: tinygit
-          path: tinygit.tar.gz
+          path: dist/tinygit
