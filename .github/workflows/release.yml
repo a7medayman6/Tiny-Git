@@ -2,7 +2,7 @@ name: Release Application
 on:
   push:
     tags:
-      - v*
+      - master
 
 jobs:
   release:
