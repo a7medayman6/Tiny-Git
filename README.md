@@ -10,7 +10,25 @@
 - ls-files: List all the files in the cache/index.
 - cat-file: Displays a git object in a specific format according to the mode argument.
 
-## Usage
+
+## Installation
+
+- Download the binary from the [releases section](https://github.com/a7medayman6/Tiny-Git/releases).
+
+- Copy the binary file to your bin directory
+
+```bash
+cp tinygit /usr/local/bin
+chmod +x /usr/local/bin/tinygit
+```
+
+- Confirm the installation
+
+```bash
+tinygit -h
+```
+
+## For Development
 
 ```bash
 git clone https://github.com/a7medayman6/Tiny-Git

@@ -37,7 +37,7 @@ jobs:
 
       - name: Create tar file
         run: |
-          tar -czvf tinygit.tar.gz -C dist .
+          tar -czvf tinygit.tar.gz dist/tinygit 
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v2
