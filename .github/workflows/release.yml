@@ -1,6 +1,7 @@
 name: Release Application
 on:
   push:
+    branches:
       - master
 
 jobs:
